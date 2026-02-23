@@ -1,0 +1,35 @@
+const { chromium } = require('playwright');
+
+async function scrapeSum(url) {
+  const browser = await chromium.launch();
+  const page = await browser.newPage();
+  await page.goto(url);
+  await page.waitForSelector('table');  // Wait for tables to load
+  
+  const numbers = await page.$$eval('table td, table th', cells =>
+    Array.from(cells)
+      .map(cell => parseFloat(cell.textContent))
+      .filter(num => !isNaN(num))
+  );
+  
+  const sum = numbers.reduce((acc, num) => acc + num, 0);
+  await browser.close();
+  return sum;
+}
+
+async function main() {
+  const seeds = [23,24,25,26,27,28,29,30,31,32];
+  let totalSum = 0;
+  
+  for (const seed of seeds) {
+    const url = `https://sanand0.github.io/tdsdata/js_table/?seed=${seed}`;
+    console.log(`Scraping seed ${seed} from ${url}`);
+    const sum = await scrapeSum(url);
+    console.log(`Sum for seed ${seed}: ${sum}`);
+    totalSum += sum;
+  }
+  
+  console.log(`GRAND TOTAL SUM: ${totalSum}`);
+}
+
+main();
