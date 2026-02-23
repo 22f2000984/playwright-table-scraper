@@ -1,26 +1,29 @@
 name: Scrape Table Sums
-
 on: [push]
-
 jobs:
   scrape:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       
-      - name: Set up Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           
-      - name: Install Playwright (22f2000984@ds.study.iitm.ac.in)
-        uses: microsoft/playwright-github-action@v1
+      - name: Cache dependencies
+        uses: actions/cache@v4
         with:
-          playwright-version: '1.48.0'
-          install-deps: true
+          path: '**/node_modules'
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/package-lock.json') }}
           
-      - name: Install project dependencies
+      - name: Install npm deps (22f2000984@ds.study.iitm.ac.in)
         run: npm ci
         
-      - name: Run scraper
+      - name: Install Playwright browsers + Ubuntu 24.04 deps
+        run: |
+          npx playwright install-deps
+          npx playwright install chromium
+          
+      - name: Scrape tables and print GRAND TOTAL SUM
         run: npm run scrape
