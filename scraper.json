@@ -32,12 +32,11 @@ async function main() {
       console.log(`Sum for seed ${seed}: ${sum}`);
       totalSum += sum;
     } catch (error) {
-      console.error(`Error scraping seed ${seed}:`, error.message);
+      console.error(`Error seed ${seed}:`, error.message);
     }
   }
   
   console.log(`\n🎉 GRAND TOTAL SUM: ${totalSum}`);
-  process.exit(0);
 }
 
 main().catch(console.error);
