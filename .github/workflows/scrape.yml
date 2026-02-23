@@ -11,16 +11,10 @@ jobs:
         with:
           node-version: '20'
           
-      - name: Cache dependencies
-        uses: actions/cache@v4
-        with:
-          path: '**/node_modules'
-          key: ${{ runner.os }}-modules-${{ hashFiles('**/package-lock.json') }}
-          
       - name: Install npm deps (22f2000984@ds.study.iitm.ac.in)
-        run: npm ci
+        run: npm install
         
-      - name: Install Playwright browsers + Ubuntu 24.04 deps
+      - name: Install Playwright browsers + Ubuntu deps
         run: |
           npx playwright install-deps
           npx playwright install chromium
