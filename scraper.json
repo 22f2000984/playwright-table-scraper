@@ -1,15 +1,18 @@
 const { chromium } = require('playwright');
 
 async function scrapeSum(url) {
-  const browser = await chromium.launch();
+  const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage();
-  await page.goto(url);
-  await page.waitForSelector('table');  // Wait for tables to load
+  await page.goto(url, { waitUntil: 'networkidle' });
+  await page.waitForSelector('table', { timeout: 10000 });
   
   const numbers = await page.$$eval('table td, table th', cells =>
     Array.from(cells)
-      .map(cell => parseFloat(cell.textContent))
-      .filter(num => !isNaN(num))
+      .map(cell => {
+        const text = cell.textContent.trim();
+        return parseFloat(text.replace(/[^\d.-]/g, ''));
+      })
+      .filter(num => !isNaN(num) && isFinite(num))
   );
   
   const sum = numbers.reduce((acc, num) => acc + num, 0);
@@ -22,14 +25,19 @@ async function main() {
   let totalSum = 0;
   
   for (const seed of seeds) {
-    const url = `https://sanand0.github.io/tdsdata/js_table/?seed=${seed}`;
-    console.log(`Scraping seed ${seed} from ${url}`);
-    const sum = await scrapeSum(url);
-    console.log(`Sum for seed ${seed}: ${sum}`);
-    totalSum += sum;
+    try {
+      const url = `https://sanand0.github.io/tdsdata/js_table/?seed=${seed}`;
+      console.log(`Scraping seed ${seed}: ${url}`);
+      const sum = await scrapeSum(url);
+      console.log(`Sum for seed ${seed}: ${sum}`);
+      totalSum += sum;
+    } catch (error) {
+      console.error(`Error scraping seed ${seed}:`, error.message);
+    }
   }
   
-  console.log(`GRAND TOTAL SUM: ${totalSum}`);
+  console.log(`\n🎉 GRAND TOTAL SUM: ${totalSum}`);
+  process.exit(0);
 }
 
-main();
+main().catch(console.error);
